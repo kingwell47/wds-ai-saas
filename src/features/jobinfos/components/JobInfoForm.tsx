@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,22 +24,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-// Enum for experience levels
-export enum JobExperienceLevel {
-  Junior = "Junior",
-  Mid = "Mid",
-  Senior = "Senior",
-  Lead = "Lead",
-}
-
-// Zod schema
-const jobInfoSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  jobTitle: z.string().optional(),
-  experienceLevel: z.nativeEnum(JobExperienceLevel).optional(),
-  description: z.string().min(1, "Description is required"),
-});
+import { jobInfoSchema } from "../schemas";
+import { experienceLevels } from "@/drizzle/schema";
+import { formatExperienceLevel } from "../lib/formatters";
 
 type JobInfoFormValues = z.infer<typeof jobInfoSchema>;
 
@@ -47,9 +35,9 @@ export function JobInfoForm() {
     resolver: zodResolver(jobInfoSchema),
     defaultValues: {
       name: "",
-      jobTitle: "",
-      experienceLevel: undefined,
+      title: null,
       description: "",
+      experienceLevel: "junior", // <-- use string literal to match schema
     },
   });
 
@@ -69,8 +57,12 @@ export function JobInfoForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder='Enter name' {...field} />
+                <Input {...field} />
               </FormControl>
+              <FormDescription>
+                This is the name that will appear on the UI for easy
+                identification.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -79,13 +71,17 @@ export function JobInfoForm() {
         <div className={cn("flex flex-col gap-4", "lg:flex-row")}>
           <FormField
             control={form.control}
-            name='jobTitle'
+            name='title'
             render={({ field }) => (
               <FormItem className='flex-1'>
                 <FormLabel>Job Title</FormLabel>
                 <FormControl>
-                  <Input placeholder='Enter job title' {...field} />
+                  <Input {...field} value={field.value ?? ""} />
                 </FormControl>
+                <FormDescription>
+                  Optional: Only enter if there is a specific job title you are
+                  targeting.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -97,23 +93,22 @@ export function JobInfoForm() {
               <FormItem className='flex-1'>
                 <FormLabel>Experience Level</FormLabel>
                 <FormControl>
-                  <Select
-                    value={field.value ?? ""}
-                    onValueChange={(value) =>
-                      field.onChange(value as JobExperienceLevel)
-                    }>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select experience level' />
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.values(JobExperienceLevel).map((level) => (
+                      {Object.values(experienceLevels).map((level) => (
                         <SelectItem key={level} value={level}>
-                          {level}
+                          {formatExperienceLevel(level)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </FormControl>
+                <FormDescription>
+                  Select the experience level that best matches your target job.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -127,14 +122,25 @@ export function JobInfoForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder='Enter description' {...field} />
+                <Textarea
+                  placeholder='Describe the job requirements, responsibilities, and any other relevant  details...'
+                  {...field}
+                />
               </FormControl>
+              <FormDescription>
+                Be as specific as possible to get the best results.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type='submit'>Submit</Button>
+        <Button
+          disabled={form.formState.isSubmitting}
+          type='submit'
+          className='w-full'>
+          Save Job Information
+        </Button>
       </form>
     </Form>
   );
