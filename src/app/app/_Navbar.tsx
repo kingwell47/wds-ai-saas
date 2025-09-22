@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserAvatar } from "@/components/UserAvatar";
+import { UserAvatar } from "@/features/users/components/UserAvatar";
 import ThemeToggle from "@/services/clerk/components/ui/ThemeToggle";
 import { SignOutButton, useClerk } from "@clerk/nextjs";
 import { BrainCircuitIcon, LogOut, User } from "lucide-react";
@@ -20,7 +20,7 @@ export function NavBar({ user }: { user: { name: string; imageUrl: string } }) {
     <nav className='w-full h-header border-b flex items-center justify-between px-6'>
       {/* Left: Logo and App Name */}
       <Link href='/app' className='flex items-center gap-2'>
-        <BrainCircuitIcon className='h-7 w-7 text-primary' />
+        <BrainCircuitIcon className='size-8 text-primary' />
         <span className='font-bold text-lg tracking-tight'>Landr</span>
       </Link>
 
