@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-import { cn } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -25,15 +24,25 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { jobInfoSchema } from "../schemas";
-import { experienceLevels } from "@/drizzle/schema";
+import { experienceLevels, JobInfoTable } from "@/drizzle/schema";
 import { formatExperienceLevel } from "../lib/formatters";
+import { LoadingSwap } from "@/components/ui/loading-swap";
+import { createJobInfo, updateJobInfo } from "../actions";
+import { toast } from "sonner";
 
 type JobInfoFormValues = z.infer<typeof jobInfoSchema>;
 
-export function JobInfoForm() {
+export function JobInfoForm({
+  jobInfo,
+}: {
+  jobInfo?: Pick<
+    typeof JobInfoTable.$inferSelect,
+    "id" | "name" | "title" | "description" | "experienceLevel"
+  >;
+}) {
   const form = useForm<JobInfoFormValues>({
     resolver: zodResolver(jobInfoSchema),
-    defaultValues: {
+    defaultValues: jobInfo ?? {
       name: "",
       title: null,
       description: "",
@@ -41,10 +50,18 @@ export function JobInfoForm() {
     },
   });
 
-  function onSubmit(values: JobInfoFormValues) {
+  async function onSubmit(values: JobInfoFormValues) {
     // handle submit
     // (no action/database code as requested)
-    console.log(values);
+    const action = jobInfo
+      ? updateJobInfo.bind(null, jobInfo.id)
+      : createJobInfo;
+    const res = await action(values);
+
+    if (res?.error) {
+      // handle error (e.g., show a notification)
+      toast.error(res.message);
+    }
   }
 
   return (
@@ -68,7 +85,7 @@ export function JobInfoForm() {
           )}
         />
 
-        <div className={cn("flex flex-col gap-4", "lg:flex-row")}>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 items-start'>
           <FormField
             control={form.control}
             name='title'
@@ -76,7 +93,11 @@ export function JobInfoForm() {
               <FormItem className='flex-1'>
                 <FormLabel>Job Title</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value ?? ""} />
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
                 </FormControl>
                 <FormDescription>
                   Optional: Only enter if there is a specific job title you are
@@ -106,9 +127,6 @@ export function JobInfoForm() {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormDescription>
-                  Select the experience level that best matches your target job.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,7 +141,7 @@ export function JobInfoForm() {
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder='Describe the job requirements, responsibilities, and any other relevant  details...'
+                  placeholder='E.g., Responsible for developing and maintaining web applications. Collaborate with cross-functional teams to define, design, and ship new features. Ensure the performance, quality, and responsiveness of applications.'
                   {...field}
                 />
               </FormControl>
@@ -139,7 +157,9 @@ export function JobInfoForm() {
           disabled={form.formState.isSubmitting}
           type='submit'
           className='w-full'>
-          Save Job Information
+          <LoadingSwap isLoading={form.formState.isSubmitting}>
+            Save Job Information
+          </LoadingSwap>
         </Button>
       </form>
     </Form>

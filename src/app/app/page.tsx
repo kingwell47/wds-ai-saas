@@ -45,7 +45,9 @@ function NoJobInfos() {
       <p className='text-muted-foreground mb-8'>
         To get started, enter information about the type of job you are looking
         for. Landr will help you create a tailored resume and cover letter to
-        increase your chances of landing the job.
+        increase your chances of landing the job. This information can be
+        updated later as needed. You can add multiple job profiles to target
+        different types of roles.
       </p>
       <Card>
         <CardContent>
