@@ -1,12 +1,22 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { db } from "@/drizzle/db";
 import { JobInfoTable } from "@/drizzle/schema";
 import { JobInfoForm } from "@/features/jobinfos/components/JobInfoForm";
 import { getJobInfoUserTag } from "@/features/jobinfos/dbCache";
+import { formatExperienceLevel } from "@/features/jobinfos/lib/formatters";
 import { getCurrentUser } from "@/services/clerk/components/lib/getCurrentUser";
 import { desc, eq } from "drizzle-orm";
-import { Loader2Icon } from "lucide-react";
+import { ArrowRightIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
+import Link from "next/link";
 import { Suspense } from "react";
 
 export default function AppPage() {
@@ -33,7 +43,58 @@ async function JobInfos() {
     return <NoJobInfos />;
   }
 
-  return null;
+  return (
+    <div className='container my-4'>
+      <div className='flex gap-2 justify-between mb-6'>
+        <h1 className='text-3xl md:text-4xl lg:text-5xl'>
+          Select a job description
+        </h1>
+        <Button asChild>
+          <Link href='/app/jobinfos/new'>
+            <PlusIcon />
+            Create Job Description
+          </Link>
+        </Button>
+      </div>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        {jobInfos.map((jobInfo) => (
+          <Link key={jobInfo.id} href={`/app/jobinfos/${jobInfo.id}`}>
+            <Card className='h-full'>
+              <div className='flex items-center justify-between h-full'>
+                <div className='space-y-4 h-full'>
+                  <CardHeader className='text-lg'>
+                    <CardTitle>{jobInfo.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className='line-clamp-3 text-muted-foreground'>
+                    {jobInfo.description}
+                  </CardContent>
+                  <CardFooter className='flex gap-2'>
+                    <Badge variant='outline'>
+                      {formatExperienceLevel(jobInfo.experienceLevel)}
+                    </Badge>
+                    {jobInfo.title && (
+                      <Badge variant='outline'>{jobInfo.title}</Badge>
+                    )}
+                  </CardFooter>
+                </div>
+                <CardContent>
+                  <ArrowRightIcon className='size-6' />
+                </CardContent>
+              </div>
+            </Card>
+          </Link>
+        ))}
+        <Link href='/app/jobinfos/new'>
+          <Card className='flex items-center justify-center h-full border-dashed border-3 bg-transparent hover:border-primary/50 transition-colors shadow-none'>
+            <div className='text-lg flex items-center gap-2'>
+              <PlusIcon className='size-6' />
+              New Job Description
+            </div>
+          </Card>
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 function NoJobInfos() {
